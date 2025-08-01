@@ -7,6 +7,7 @@ const serviceSid = process.env.TWILIO_SERVICE_SID
 
 const client = twilio(accountSid, authToken);
 
+// for sending otp to sms using twilio
 export async function POST(req: NextRequest) {
     try {
         const {phoneNumber} = await req.json()
@@ -22,5 +23,4 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         return NextResponse.json({message: "error while sending otp", error, success: false})
     }
-    
 }

@@ -1,13 +1,16 @@
-import { models, model, Schema } from "mongoose";
+import mongoose, { models, model, Schema, Document } from "mongoose";
 import bcrypt from "bcrypt";
 
-interface IUser {
+export interface IUser extends Document {
   userName: string;
   fullName: string;
   email: string;
+  emailVerified: boolean;
+  emailToken?: string;
   password: string;
-  phoneNumber: number;
-  otp?: number;
+  role: string;
+  // phoneNumber: number;
+  // otp?: string;
 }
 
 const userSchema = new Schema<IUser>(
@@ -23,10 +26,32 @@ const userSchema = new Schema<IUser>(
       type: String,
       unique: true,
       required: true,
+      match: [
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        "Please use a valid email address.",
+      ],
     },
-    password: String,
-    phoneNumber: Number,
-    otp: Number,
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailToken: {
+      type: String,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    // phoneNumber: {
+    //   type: Number,
+    //   required: true,
+    // },
+    // otp: String,
   },
   {
     timestamps: true,
@@ -43,4 +68,5 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-export const userModel = models?.users || model<IUser>("users", userSchema);
+export const userModel =
+  (models?.users as mongoose.Model<IUser>) || model<IUser>("users", userSchema);
