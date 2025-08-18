@@ -17,21 +17,15 @@ export function middleware(req: NextRequest) {
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
-  try {
-    const decoded = jwt.verify(token, process.env.TOKEN_SECRET!);
-    console.log("Decoded Token:", decoded);
-    return NextResponse.next();
-  } catch (error) {
-    console.error("Token Verification Failed:", error);
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
     // protect all routes under /dashboard or /profile etc.
-    "/proudcts/:path*",
+    "/products/:path*",
     "/profile/:path*",
     "/orders/:path*",
   ],
+  //  runtime: "nodejs"
 };

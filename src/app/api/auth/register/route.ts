@@ -25,7 +25,6 @@ export async function POST(req: NextRequest) {
         message: "Validation failed",
         errors: result.error?.flatten().fieldErrors,
       },
-      { status: 400 }
     );
   }
   const { userName, fullName, email, password } = result.data;
@@ -37,8 +36,8 @@ export async function POST(req: NextRequest) {
         {
           message: "Your account already exist please login.",
           success: false,
+          status: 409
         },
-        { status: 400 }
       );
     }
 

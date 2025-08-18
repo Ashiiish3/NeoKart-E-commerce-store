@@ -9,7 +9,7 @@ export const loginSchema = z
       .max(15, "Username must be maximum 15 character.")
       .regex(/^[A-Za-z0-9_]+$/, "Username must not contain special character.")
       .optional(),
-    email: z.string().email({ message: "Invalid Email address." }).optional(),
+    email: z.string().email({ message: "Invalid Email address." }).toLowerCase().optional(),
     password: z
       .string()
       .min(6, { message: "Password must be minimum 6 letters" })

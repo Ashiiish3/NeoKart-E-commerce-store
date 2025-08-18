@@ -2,14 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { connectToDB } from "@/lib/db";
 import { productModel } from "@/models/product.model";
-// import { jwtPayload } from "@/types/type";
 import path from "path";
-import fs from "fs";
+import { writeFile } from "fs/promises";
 // import { promisify } from "util";
 // import { upload } from "@/lib/multer";
 
 export async function POST(req: NextRequest) {
-
   try {
     // const uploadMiddleware = promisify(upload.single("image"));
 
@@ -41,38 +39,92 @@ export async function POST(req: NextRequest) {
     console.log(file, "file");
     // await uploadMiddleware(req, res)
 
+    // for allowing types of images
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid file type. Only images, PDFs, and documents are allowed.",
+        },
+        { status: 400 }
+      );
+    }
+
     // Convert File to Buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const filename = Date.now() + "-" + file.name;
+    const filename = Date.now() + "-" + file.name.split(" ").join("-");
     const filepath = `public/uploads/${filename}`;
 
-    fs.writeFileSync(filepath, buffer)
+    await writeFile(filepath, buffer);
 
-    console.log(filename, "filename")
-    console.log(filepath, "filepath")
+    console.log(filename, "filename");
+    console.log(filepath, "filepath");
 
-    // const product = await productModel.create({
-    //   name,
-    //   description,
-    //   price,
-    //   category,
-    //   brand,
-    //   image,
-    //   ratings,
-    // });
-    // console.log(product);
+    const product = await productModel.create({
+      name,
+      description,
+      price,
+      category,
+      brand,
+      image: `/uploads/${filename}`,
+      ratings,
+      userId: decoded?.user?._id,
+    });
+    console.log(product);
     return NextResponse.json({
       message: "Product created successfully.",
       success: true,
-      // product,
+      product,
     });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error?.message : "internal server erorr";
     return NextResponse.json({
       message: errorMessage,
+      success: false,
+      error,
+    });
+  }
+}
+
+// getting all products
+export async function GET(req: NextRequest) {
+  await connectToDB();
+  try {
+    const { searchParams } = new URL(req.url);
+    const category = searchParams.get("category");
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
+
+    const query: any = {};
+    if (category) query.category = category;
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    const getAllProducts = await productModel.find(query);
+    console.log(getAllProducts);
+    return NextResponse.json({
+      message: "All Products get Successfully.",
+      success: true,
+      products: getAllProducts,
+    });
+  } catch (error) {
+    return NextResponse.json({
+      message: "internal server error",
       success: false,
       error,
     });

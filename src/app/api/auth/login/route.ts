@@ -22,11 +22,10 @@ export async function POST(req: NextRequest) {
     );
   }
   const { userName, email, password } = result.data;
-  console.log(result.data, "result data");
   try {
     const user = await userModel.findOne({ $or: [{ email }, { userName }] });
     if (!user) {
-      return { message: "Please create account first.", success: false };
+      return NextResponse.json({ message: "Please create account first.", success: false });
     }
     const compPass = await bcrypt.compare(password, user?.password);
     if (!compPass) {
@@ -34,7 +33,7 @@ export async function POST(req: NextRequest) {
     }
     const { password: pwd, ...rest } = user.toObject();
     const token = jwt.sign({ user: rest }, process.env.TOKEN_SECRET as string, {
-      expiresIn: "5m",
+      expiresIn: "1d",
     });
     cookieStore.set("token", token);
     return NextResponse.json({

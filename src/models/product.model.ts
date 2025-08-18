@@ -8,7 +8,6 @@ interface ProductSchema extends Document {
   brand: string;
   image: string;
   ratings: number;
-//   reviews: string[];
   userId: Schema.Types.ObjectId;
 }
 
@@ -33,7 +32,6 @@ const productShema = new Schema<ProductSchema>({
   brand: String,
   image: String,
   ratings: Number,
-//   reviews: [],
   userId: {
     type: Schema.Types.ObjectId,
     ref: "user",
